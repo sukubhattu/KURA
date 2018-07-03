@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Start a New Topic{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{% url 'home' %}">KURA HOME</a> &nbsp &nbsp
+ <a href="{% url 'board_topics' board.pk %}">{{ board.name }}</a>
+  <h1>{{board.name}} ko New topic ma xa ahile</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include 'includes/form.html' %}
+    <button type="submit" class="btn btn-success">Post</button>
+  </form>
+{% endblock %}
