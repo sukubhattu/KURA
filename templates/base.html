@@ -41,8 +41,10 @@
     </nav>
     <div class="container">
       <!-- this bread crum is for interactive url that changes every time inside pages -->
-      {% block breadcrumb %}
-      {% endblock %}
+        <ol class="breadcrumb my-4">
+          {% block breadcrumb %}
+          {% endblock %}
+        </ol>
       <!-- this content is for the things to be displayed -->
       {% block content %}
       {% endblock %}
