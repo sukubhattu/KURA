@@ -5,6 +5,11 @@ from .forms import PostForm #this is for reply wala ko
 from .forms import NewTopicForm
 from .models import Board, Topic, Post
 from django.db.models import Count
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic import UpdateView
+from django.utils.decorators import method_decorator
+from django.utils import timezone
+from django.urls import reverse_lazy
 
 def home(request):
     boards = Board.objects.all()
@@ -13,7 +18,21 @@ def home(request):
 
 def board_topics(request, pk):
     board = get_object_or_404(Board, pk=pk)
-    topics = board.topics.order_by('-last_updated').annotate(replies=Count('posts') - 1)
+    queryset = board.topics.order_by('-last_updated').annotate(replies=Count('posts') - 1)
+    page = request.GET.get('page', 1)
+
+    paginator = Paginator(queryset, 20)
+
+    try:
+        topics = paginator.page(page)
+    except PageNotAnInteger:
+        # fallback to the first page
+        topics = paginator.page(1)
+    except EmptyPage:
+        # probably the user tried to add a page number
+        # in the url, so we fallback to the last page
+        topics = paginator.page(paginator.num_pages)
+
     return render(request, 'boards/topics.html', {'board': board, 'topics': topics})
 
 @login_required
@@ -56,3 +75,28 @@ def reply_topic(request, pk, topic_pk):
     else:
         form = PostForm()
     return render(request, 'boards/reply_topic.html', {'topic': topic, 'form': form})
+
+@method_decorator(login_required, name='dispatch')
+class PostUpdateView(UpdateView):
+    model = Post
+    fields = ('message', )
+    template_name = 'boards/edit_post.html'
+    pk_url_kwarg = 'post_pk'
+    context_object_name = 'post'
+
+    def form_valid(self, form):
+        post = form.save(commit=False)
+        post.updated_by = self.request.user
+        post.updated_at = timezone.now()
+        post.save()
+        return redirect('topic_posts', pk=post.topic.board.pk, topic_pk=post.topic.pk)
+
+@method_decorator(login_required, name='dispatch')
+class UserUpdateView(UpdateView):
+    model = User
+    fields = ('first_name', 'last_name', 'email', )
+    template_name = 'my_account.html'
+    success_url = reverse_lazy('my_account')
+
+    def get_object(self):
+        return self.request.user

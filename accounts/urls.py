@@ -3,7 +3,13 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 #this below code is for login
 from accounts import views as accounts_views
+
 from django.conf import settings
+from django.contrib import admin
+from django.contrib.auth import views as auth_views
+from accounts import views as accounts_views
+from boards import views
+
 
 urlpatterns = [
     path('signup/', accounts_views.signup, name='signup'),
@@ -25,9 +31,12 @@ urlpatterns = [
     path('reset/complete',
         auth_views.PasswordResetCompleteView.as_view(template_name='accounts/password_reset_complete.html'),
         name='password_reset_complete'),
+
+
     path('settings/password', auth_views.PasswordChangeView.as_view(template_name='accounts/password_change.html'),
     name='password_change'),
     path('settings/password/done', auth_views.PasswordChangeDoneView.as_view(template_name='accounts/password_change_done.html'),
     name='password_change_done'),
+    #path('settings/account/', accounts_views.UserUpdateView.as_view(), name='my_account'),
 
 ]
